@@ -1,0 +1,14 @@
+{
+  "name": "JIRA boilerplate project",
+  "key": "com.atlassian.developer.devrel.jira",
+  "authentication": {
+    "type": "none"
+  },
+  "baseUrl": "https://cf726b21.ngrok.io", 
+  "lifecycle": {
+    "installed": "/lifecycle/installed",
+    "uninstalled": "/lifecycle/uninstalled",
+    "enabled": "/lifecycle/enabled",
+    "disabled": "/lifecycle/disabled"
+  }
+}

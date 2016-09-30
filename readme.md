@@ -4,4 +4,4 @@ An Atlassian Connect add-on built from scratch and with debugging in mind to be 
 
 ## Supports
 
-* Will spin up ngrok when server starts; will disconnect from ngrok on shut down. 
+* Will spin up ngrok when server starts; will disconnect from ngrok on shut down.
