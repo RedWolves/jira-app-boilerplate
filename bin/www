@@ -8,6 +8,7 @@ var app = require('../app');
 var debug = require('debug')('JIRA:server');
 var http = require('http');
 var ngrok = require('ngrok');
+var fs = require('fs');
 
 /**
  * Get port from environment and store in Express.
@@ -47,6 +48,18 @@ process.on('SIGINT', function() {
  */
 function startNgrok(port) {
   ngrok.connect(port, function(err, url){
+    
+    let descriptor = JSON.parse(fs.readFileSync('atlassian-connect.json'));
+    descriptor.baseUrl = url;
+    let dir = 'generated/';
+
+    if (!fs.existsSync(dir)){
+        fs.mkdirSync(dir);
+    }
+    fs.writeFileSync(dir + 'atlassian-connect.json', JSON.stringify(descriptor));
+    debug("atlassian-connect.json has been generated in ./generated/atlassian-connect.json");
+    console.log(descriptor);
+
     debug("ngrok started at " + url);
   });
 }

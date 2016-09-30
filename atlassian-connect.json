@@ -4,7 +4,7 @@
   "authentication": {
     "type": "none"
   },
-  "baseUrl": "https://cf726b21.ngrok.io", 
+  "baseUrl": "{{baseUrl}}", 
   "lifecycle": {
     "installed": "/lifecycle/installed",
     "uninstalled": "/lifecycle/uninstalled",
