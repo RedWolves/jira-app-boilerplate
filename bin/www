@@ -9,6 +9,8 @@ var debug = require('debug')('JIRA:server');
 var http = require('http');
 var ngrok = require('ngrok');
 var fs = require('fs');
+var request = require('request');
+var ngrokUrl = "";
 
 /**
  * Get port from environment and store in Express.
@@ -50,7 +52,7 @@ function startNgrok(port) {
   ngrok.connect(port, function(err, url){
     
     let descriptor = JSON.parse(fs.readFileSync('atlassian-connect.json'));
-    descriptor.baseUrl = url;
+    ngrokUrl = descriptor.baseUrl = url;
     let dir = 'generated/';
 
     if (!fs.existsSync(dir)){
@@ -61,7 +63,64 @@ function startNgrok(port) {
     console.log(descriptor);
 
     debug("ngrok started at " + url);
+    registerMPAC();
   });
+}
+
+function registerMPAC() {
+  let credentials = JSON.parse(fs.readFileSync('credentials.json'));
+  if (credentials) {
+    request.get("https://" + credentials.hosts.instance + "/rest/plugins/1.0/?os_authType=basic",
+      {
+        'auth': {
+          'user': credentials.hosts.username,
+          'pass': credentials.hosts.password
+        },
+        'header': {
+          'accept': 'application/vnd.atl.plugins.installed+json',
+          'WWW-Authenticate': 'basic'
+        }
+      }, (err, res, body) => {
+        debug("Fetching UPM Token...");
+        if (err) {
+          console.log(err);
+        } else {
+          debug("UPM token received: " + res.headers['upm-token']);
+          let upmToken = res.headers['upm-token'];
+          let descriptor = JSON.parse(fs.readFileSync("generated/atlassian-connect.json"));
+          
+          request.post("https://" + credentials.hosts.instance + "/rest/plugins/1.0/?token=" + upmToken, 
+            {
+              'auth': {
+                'user': credentials.hosts.username,
+                'pass': credentials.hosts.password
+              },
+              'header': {
+                'Accept': 'application/json',
+                'Content-Type': 'application/vnd.atl.plugins.install.uri+json' 
+              },
+              'body': JSON.stringify({
+                          "pluginName": descriptor.name,
+                          "pluginUri": descriptor.baseUrl + "/atlassian-connect.json"
+                        })
+            }, (err, res, body) => {
+              debug("https://" + credentials.hosts.instance + "/rest/plugins/1.0/?token=" + upmToken);
+              debug("Auto-registering add-on with UPM...");
+              if (err) {
+                console.log(err);
+              } else {
+                if (res.statusCode === 200) {
+                  debug("Auto-register successful.");
+                } else {
+                  debug("Auto-register failure - StatusCode:" + res.statusCode);
+                }
+              }
+            });
+        }
+      })
+  } else {
+    debug("No credentials. Skipping auto-registering with MPAC.");
+  }
 }
 
 /**
@@ -123,4 +182,5 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
   startNgrok(addr.port);
+  
 }
