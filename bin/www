@@ -76,7 +76,7 @@ function registerMPAC() {
           'user': credentials.hosts.username,
           'pass': credentials.hosts.password
         },
-        'header': {
+        'headers': {
           'accept': 'application/vnd.atl.plugins.installed+json',
           'WWW-Authenticate': 'basic'
         }
@@ -95,24 +95,29 @@ function registerMPAC() {
                 'user': credentials.hosts.username,
                 'pass': credentials.hosts.password
               },
-              'header': {
+              'headers': {
                 'Accept': 'application/json',
-                'Content-Type': 'application/vnd.atl.plugins.install.uri+json' 
+                'Content-Type': 'application/vnd.atl.plugins.install.uri+json'
               },
-              'body': JSON.stringify({
+              'body':JSON.stringify({
                           "pluginName": descriptor.name,
                           "pluginUri": descriptor.baseUrl + "/atlassian-connect.json"
                         })
             }, (err, res, body) => {
-              debug("https://" + credentials.hosts.instance + "/rest/plugins/1.0/?token=" + upmToken);
+              debug(JSON.stringify({
+                          "pluginName": descriptor.name,
+                          "pluginUri": descriptor.baseUrl + "/atlassian-connect.json"
+                        }));
               debug("Auto-registering add-on with UPM...");
               if (err) {
                 console.log(err);
               } else {
                 if (res.statusCode === 200) {
                   debug("Auto-register successful.");
+                  console.log(body);
                 } else {
                   debug("Auto-register failure - StatusCode:" + res.statusCode);
+                  console.log(body);
                 }
               }
             });
