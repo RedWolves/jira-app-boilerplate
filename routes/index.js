@@ -9,7 +9,7 @@ router.get('/', function(req, res, next) {
 
 router.get('/atlassian-connect.json', (req, res) => {
   var descriptor = JSON.parse(fs.readFileSync('generated/atlassian-connect.json'));
-  res.send(200, descriptor);
+  res.status(200).send(descriptor);
   res.end();
 });
 
