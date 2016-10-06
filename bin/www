@@ -38,9 +38,15 @@ server.on('listening', onListening);
  */
 process.on('SIGINT', function() {
     server.close(function(){
+
+      disconnectMPAC(() => {
         ngrok.disconnect();
         debug("ngrok disconnected.");
+        
         process.exit();
+      });
+
+      
     });
 });
 
@@ -123,6 +129,89 @@ function registerMPAC() {
       })
   } else {
     debug("No credentials. Skipping auto-registering with MPAC.");
+  }
+}
+
+function disconnectMPAC(callback) {
+  let credentials = JSON.parse(fs.readFileSync('credentials.json'));
+  let descriptor = JSON.parse(fs.readFileSync("generated/atlassian-connect.json"));
+  if (credentials) {
+    request.get("https://" + credentials.hosts.instance + "/rest/plugins/1.0/?os_authType=basic",
+      {
+        'auth': {
+          'user': credentials.hosts.username,
+          'pass': credentials.hosts.password
+        },
+        'headers': {
+          'accept': 'application/vnd.atl.plugins.installed+json',
+          'WWW-Authenticate': 'basic'
+        }
+      }, (err, res, body) => {
+        debug("Fetching UPM Token...");
+        if (err) {
+          console.log(err);
+        } else {
+          debug("UPM token received: " + res.headers['upm-token']);
+          let upmToken = res.headers['upm-token'];
+          let bodyJson = JSON.parse(body);
+          let plugins = bodyJson.plugins;
+          let selfUrl = "";
+          plugins.forEach((plugin, index) => {
+            if (plugin.key === descriptor.key) {
+              selfUrl = plugin.links.self;
+            }
+          })
+          
+          request.delete("https://" + credentials.hosts.instance + selfUrl + "?token=" + upmToken, {
+            'auth': {
+              'user': credentials.hosts.username,
+              'pass': credentials.hosts.password
+            }
+          }, (err, res, body) => {
+              if (err) {
+                console.log(err);
+              } else {
+                debug("Add-on deregistered from UPM");
+              }
+              callback();
+            }
+          );
+          
+          /*request.post("https://" + credentials.hosts.instance + "/rest/plugins/1.0/?token=" + upmToken, 
+            {
+              'auth': {
+                'user': credentials.hosts.username,
+                'pass': credentials.hosts.password
+              },
+              'headers': {
+                'Accept': 'application/json',
+                'Content-Type': 'application/vnd.atl.plugins.install.uri+json'
+              },
+              'body':JSON.stringify({
+                          "pluginName": descriptor.name,
+                          "pluginUri": descriptor.baseUrl + "/atlassian-connect.json"
+                        })
+            }, (err, res, body) => {
+              debug(JSON.stringify({
+                          "pluginName": descriptor.name,
+                          "pluginUri": descriptor.baseUrl + "/atlassian-connect.json"
+                        }));
+              debug("Auto-registering add-on with UPM...");
+              if (err) {
+                console.log(err);
+              } else {
+                if (res.statusCode === 202) {
+                  debug("Auto-register successful.");
+                } else {
+                  debug("Auto-register failure - StatusCode:" + res.statusCode);
+                }
+              }
+            });*/
+        }
+      })
+  } else {
+    debug("No credentials. Skipping auto-registering with MPAC.");
+    callback()
   }
 }
 
