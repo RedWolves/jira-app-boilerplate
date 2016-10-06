@@ -110,10 +110,6 @@ function registerMPAC() {
                           "pluginUri": descriptor.baseUrl + "/atlassian-connect.json"
                         })
             }, (err, res, body) => {
-              debug(JSON.stringify({
-                          "pluginName": descriptor.name,
-                          "pluginUri": descriptor.baseUrl + "/atlassian-connect.json"
-                        }));
               debug("Auto-registering add-on with UPM...");
               if (err) {
                 console.log(err);
