@@ -42,11 +42,11 @@ process.on('SIGINT', function() {
       disconnectMPAC(() => {
         ngrok.disconnect();
         debug("ngrok disconnected.");
-        
+
         process.exit();
       });
 
-      
+
     });
 });
 
@@ -56,7 +56,7 @@ process.on('SIGINT', function() {
  */
 function startNgrok(port) {
   ngrok.connect(port, function(err, url){
-    
+
     let descriptor = JSON.parse(fs.readFileSync('atlassian-connect.json'));
     ngrokUrl = descriptor.baseUrl = url;
     let dir = 'generated/';
@@ -94,8 +94,8 @@ function registerMPAC() {
           debug("UPM token received: " + res.headers['upm-token']);
           let upmToken = res.headers['upm-token'];
           let descriptor = JSON.parse(fs.readFileSync("generated/atlassian-connect.json"));
-          
-          request.post("https://" + credentials.hosts.instance + "/rest/plugins/1.0/?token=" + upmToken, 
+
+          request.post("https://" + credentials.hosts.instance + "/rest/plugins/1.0/?token=" + upmToken,
             {
               'auth': {
                 'user': credentials.hosts.username,
@@ -157,7 +157,7 @@ function disconnectMPAC(callback) {
               selfUrl = plugin.links.self;
             }
           })
-          
+
           request.delete("https://" + credentials.hosts.instance + selfUrl + "?token=" + upmToken, {
             'auth': {
               'user': credentials.hosts.username,
@@ -172,8 +172,8 @@ function disconnectMPAC(callback) {
               callback();
             }
           );
-          
-          /*request.post("https://" + credentials.hosts.instance + "/rest/plugins/1.0/?token=" + upmToken, 
+
+          /*request.post("https://" + credentials.hosts.instance + "/rest/plugins/1.0/?token=" + upmToken,
             {
               'auth': {
                 'user': credentials.hosts.username,
@@ -264,11 +264,12 @@ function onError(error) {
  */
 
 function onListening() {
+
   var addr = server.address();
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
   startNgrok(addr.port);
-  
+
 }

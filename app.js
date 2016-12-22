@@ -1,18 +1,17 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var hbs = require('express-hbs');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+var express       = require('express');
+var path          = require('path');
+var favicon       = require('serve-favicon');
+var logger        = require('morgan');
+var hbs           = require('express-hbs');
+var cookieParser  = require('cookie-parser');
+var bodyParser    = require('body-parser');
 
-var routes = require('./routes/index');
-var lcroutes = require('./routes/lifecycle');
+var routes         = require('./routes/index');
+var lcroutes       = require('./routes/lifecycle');
 
-var app = express();
+var app            = express();
 
 // view engine setup
-
 app.engine('hbs', hbs.express4({
   partialsDir: __dirname + '/views/partials'
 }));
